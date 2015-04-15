@@ -21,12 +21,13 @@ io.on('connection', function(socket){
   socket.on('video id', function(vid){
     //TODO: Add video to database for current playing video.
     currentvid = vid;
-    console.log('now playing video with id ' + currentvid);
+    console.log('playing video with id ' + currentvid);
     io.emit('video id', currentvid);
   });
   //Socket handler for current video time
   socket.on('video time', function(time){
     currenttime = time;
+    console.log('syncing to time ' + currenttime);
     io.emit('video time', currenttime);
   });
 });

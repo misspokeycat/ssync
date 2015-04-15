@@ -8,6 +8,7 @@
       <form>
         Enter a vidid: <input id="vidid" type="text">
       </form>
+      <button id="timesync">Sync To Me</button>
       <script type="text/javascript">
           var currentvideo = 'M7lc1UVf-VE';
           var tag = document.createElement('script');
@@ -37,8 +38,17 @@
       <script type="text/javascript">
         var socket = io();
         //This sends the vidid in the vidid field to the server
-        $('form').submit(function(){
+        $('form').submit(function(e){
+          e.preventDefault();
           socket.emit('video id', $('#vidid').val());
+        });
+        $('#timesync').click(function(){
+          socket.emit('video time', player.getCurrentTime());
+        });
+        socket.on('video time', function(time){
+          if (player != null){
+            player.seekTo(time);
+          }
         });
         //This handles reciept of video ids.
         socket.on('video id', function(vid){
