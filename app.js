@@ -1,6 +1,8 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database(':memory:');
 
 //Serve index.html page for request to /
 app.get('/', function(req, res){
@@ -41,6 +43,21 @@ io.on('connection', function(socket){
   });
 });
 
+//SQLite code
+db.serialize(function(){
+  db.run("CREATE TABLE IF NOT EXISTS playlist (id INTEGER PRIMARY KEY,title TEXT, yt_id TEXT, duration INTEGER)");
+  //Test add, but should be doable with other things
+  db.run("INSERT INTO playlist (title, yt_id, duration) VALUES (" +
+    "'beatmania IIDX - smooooch・∀・'" +", "+
+    "'QvGRj77EAOo'" +", "+
+    "120" + ")");
+  db.each("SELECT * FROM playlist", function(err, row){
+    //For now, just log everything in table playlist.
+    console.log(row);  //Appears this is returned as json, which ROCKS!
+  });
+});
+
+db.close();
 //Starts the server
 http.listen(3000, function(){
   console.log('listening on *:3000')
