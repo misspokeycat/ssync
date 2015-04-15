@@ -11,6 +11,7 @@
       <button id="timesync">Sync To Me</button>
       <script type="text/javascript">
           var currentvideo = 'M7lc1UVf-VE';
+          var playerReady = false;
           var tag = document.createElement('script');
           tag.src = "https://www.youtube.com/iframe_api";
           var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -29,6 +30,7 @@
         }
         function onPlayerReady(event){
           event.target.playVideo();
+          playerReady = true;
         }
         var done = false;
         function onPlayerStateChange(event){
@@ -46,15 +48,20 @@
           socket.emit('video time', player.getCurrentTime());
         });
         socket.on('video time', function(time){
-          if (player != null){
-            player.seekTo(time);
+          if (playerReady){
+            //Sync accuracy constant.  Should be settable by user option, but that's TODO.
+            var SYNC_ACCURACY = 1;
+            if (Math.abs(player.getCurrentTime() - time) > SYNC_ACCURACY){
+              console.log('seeking to ' + time);
+              player.seekTo(time);
+            }
           }
         });
         //This handles reciept of video ids.
         socket.on('video id', function(vid){
           //Sets youtube player to selected video
           currentvideo = vid;
-          if (player != null){
+          if (playerReady){
             player.loadVideoById(currentvideo);
           }
         });
