@@ -42,15 +42,20 @@ io.on('connection', function(socket){
   //Send current video id and time to connecting clients
   socket.emit('video id', currentvid);
   socket.emit('currenttime', currenttime);
-
+  function playVid(vid_id){
+    currenttime = 0;
+    currentvid = vid_id;
+    io.emit('video id', currentvid);
+  }
   //Socket handler for current video
   socket.on('video id', function(vid){
-    //TODO: Add video to database for current playing video.
-    currentvid = vid;
-    //Since new video played, set timer back to zero.
-    currenttime = 0;
     console.log('playing video with id ' + currentvid);
-    io.emit('video id', currentvid);
+  });
+  //Socket handler for playing playlist items
+  socket.on('pl_play', function(id){
+    db.get('SELECT yt_id FROM playlist WHERE id=?', id, function(err, row){
+      playVid(row.yt_id);
+    });
   });
   //Socket handler for current video time
   socket.on('video time', function(time){
@@ -104,7 +109,7 @@ io.on('connection', function(socket){
             $yt_imgURL: content.items[0].snippet.thumbnails.default.url
           });
           //Adds video to client playlists from DB query
-          db.each("SELECT * FROM playlist WHERE yt_id=?", content.items[0].id, function(err, row){
+          db.get("SELECT * FROM playlist WHERE yt_id=?", content.items[0].id, function(err, row){
             io.emit('pl_add', row);
           });
         }

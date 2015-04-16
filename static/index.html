@@ -76,8 +76,13 @@
           var pldiv = $("<div>", {id: plitem.id, class: 'plitem'});    
           $(pldiv).append('<img src="'+plitem.yt_imgURL+'"">')
           .append('<div id="qtitle">' + plitem.title + '</div>')
-          .append('<div id="qduration">' + sectoHMS(plitem.duration)+'</div>') //todo - make queue/play work
-          .append('<button id="btnQueue">Queue</button> <button id="btnPlay">Play</button>');
+          .append('<div id="qduration">' + sectoHMS(plitem.duration)+'</div>'); //todo - make queue/play work
+          var btnPlay = $("<button>", {id: 'btnPlay', text: 'Play'});
+          $(btnPlay).click(function(){
+            socket.emit('pl_play', plitem.id);
+          });
+          $(pldiv).append(btnPlay);
+          //append('<button id="btnQueue">Queue</button> <button id="btnPlay">Play</button>');
           $("#playlist").append(pldiv);
         });
         //this handles time synchronization
