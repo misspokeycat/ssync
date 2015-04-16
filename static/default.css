@@ -1,4 +1,11 @@
 .plitem{
   width: 120px;
   height: 150px;
+  background-color: pink;
+  display: inline-block;
+  padding: 5px;
+}
+#qtitle{
+  white-space: nowrap;
+  overflow: hidden;
 }
