@@ -73,15 +73,20 @@
             }
           }
           //create the playlist div using the template
-          var pldiv = $("<div>", {id: plitem.id, class: 'plitem'});    
-          $(pldiv).append('<img src="'+plitem.yt_imgURL+'"">')
-          .append('<div id="qtitle">' + plitem.title + '</div>')
-          .append('<div id="qduration">' + sectoHMS(plitem.duration)+'</div>'); //todo - make queue/play work
+          var pldiv = $("<div>", {id: plitem.id, class: 'plitem'});
           var btnPlay = $("<button>", {id: 'btnPlay', text: 'Play'});
           $(btnPlay).click(function(){
             socket.emit('pl_play', plitem.id);
           });
-          $(pldiv).append(btnPlay);
+          var btnDel = $("<button>", {id: 'btnDel', text: 'x'});
+          $(btnDel).click(function(){
+            socket.emit('pl_remove', plitem.id);
+          });    
+          $(pldiv).append('<img src="'+plitem.yt_imgURL+'"">')
+          .append('<div id="qtitle">' + plitem.title + '</div>')
+          .append('<div id="qduration">' + sectoHMS(plitem.duration)+'</div>')          
+          .append(btnPlay)
+          .append(btnDel);
           //append('<button id="btnQueue">Queue</button> <button id="btnPlay">Play</button>');
           $("#playlist").append(pldiv);
         });
@@ -102,6 +107,10 @@
           if (playerReady){
             player.loadVideoById(currentvideo);
           }
+        });
+        //This handles playlist deletions
+        socket.on('pl_remove', function(id){
+          $("#"+id).remove();
         });
       </script>
   </body>
