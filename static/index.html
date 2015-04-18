@@ -56,10 +56,10 @@
         //Add to playlist
         $('#atp').click(function(){
           socket.emit('pl_add', $('#vidid').val());
+          $('#vidid').reset();
         });
         //playlist adds
         socket.on('pl_add', function(plitem){
-          console.log(plitem);
           function sectoHMS(s){  //we want our video times in HH:MM:SS format
             var h = Math.floor(s/3600);
             s -= h*3600;

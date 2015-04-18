@@ -5,7 +5,7 @@ var helpers = require('./app/helpers.js');
 var http = require('http').createServer(app);
 var io = require('socket.io').listen(http);
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(':memory:');  //Change to an actual file eventually!
+var db = new sqlite3.Database('data.sqlite');  //Change to an actual file eventually!
 
 //SQLite code 
 db.serialize(function(){
@@ -14,8 +14,8 @@ db.serialize(function(){
   //SQL Breakdown - Video title, Video URL, previous playlist video url, decimal position, duration in seconds, image thumbnail, and whether vid is playing
   db.run("CREATE TABLE IF NOT EXISTS playlist (id INTEGER PRIMARY KEY,title TEXT, yt_id TEXT, position REAL, duration INTEGER, yt_imgURL TEXT, playing INTEGER)");
   //Test add, but should be doable with other things
-  db.run("INSERT INTO playlist (title, yt_id, yt_imgURL, duration, position) VALUES" + 
-  "('beatmania IIDX - smooooch・∀・', 'QvGRj77EAOo', 'https://i.ytimg.com/vi/Ey1ymDaxmog/default.jpg', 120, 0)");
+  //db.run("INSERT INTO playlist (title, yt_id, yt_imgURL, duration, position) VALUES" + 
+  //"('beatmania IIDX - smooooch・∀・', 'QvGRj77EAOo', 'https://i.ytimg.com/vi/Ey1ymDaxmog/default.jpg', 120, 0)");
 }); 
 
 //Serves static directory
@@ -54,6 +54,7 @@ function playNextVidInPlaylist(){
       console.log('playing video with position ' + currentpos);
     } else{  //loops playlist back to start
       currentpos = -1;
+      console.log('Reached EOP');
       playNextVidInPlaylist();  //woot recursion
     }
   });
@@ -122,15 +123,19 @@ io.on('connection', function(socket){
             //Adds video to database  TODO: Update for decimal position structure
             db.get("SELECT max(position) FROM playlist", function (err, row){
               //Increment max value by 1, add value
-              var maxval = row;
-              if (maxval = null) maxval = 0;
+              var maxval = row[Object.keys(row)[0]];
+              if (maxval === null) maxval = 0;
+              //why does it have to return json objects with () in thier name?
+              console.log(row);
+              if (maxval == undefined) maxval = 0;
               db.run("INSERT INTO playlist (title, yt_id, duration, yt_imgURL, playing, position) VALUES ($title, $yt_id, $duration, $yt_imgURL, 0, $position)", {
                 $title: content.items[0].snippet.title, 
                 $yt_id: content.items[0].id,
                 $duration: helpers.convert_time(content.items[0].contentDetails.duration),
                 $yt_imgURL: content.items[0].snippet.thumbnails.default.url,
-                $position: maxval+1
+                $position: maxval +1
               });
+              console.log('adding at position ' + (maxval+1));
               //Adds video to client playlists from DB query
               db.get("SELECT * FROM playlist WHERE yt_id=?", content.items[0].id, function(err, row){
                 io.emit('pl_add', row);
