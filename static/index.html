@@ -4,14 +4,24 @@
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
   <link rel="stylesheet" type="text/css" href="default.css">
   <body>
-      <div id="player"></div>
-      </br>
-      <form>
-        Enter a vidid: <input id="vidid" type="text">
-      </form>
-      <button id="atp">Add to playlist</button>
-      <button id="timesync">Sync To Me</button>
-      <p>
+  <div id="wrapper">
+    <div id="main">
+      <div id="chatpl">
+        <div id="player"></div>
+        <div id="chat">
+          <div id="chat_text"></div>
+          <div id="chat_users"></div>
+          <form id="chat_send"><input id="chatbox" type="text"></form>
+        </div>
+      </div>
+      <br>
+      <div id="plcontrols">
+        <form>
+          Enter a vidid: <input id="vidid" type="text">
+        </form>
+        <button id="atp">Add to playlist</button>
+        <button id="timesync">Sync To Me</button>
+      </div>
       <div id="playlist">
       </div>
       <script type="text/javascript">
@@ -56,7 +66,7 @@
         //Add to playlist
         $('#atp').click(function(){
           socket.emit('pl_add', $('#vidid').val());
-          $('#vidid').reset();
+          $('#vidid').val('');
         });
         //playlist adds
         socket.on('pl_add', function(plitem){
@@ -113,5 +123,7 @@
           $("#"+id).remove();
         });
       </script>
+    </div>
+    </div>
   </body>
 </html>

@@ -1,3 +1,9 @@
+#wrapper{
+  width: 90%;
+}
+#main{
+  display: inline-block;
+}
 .plitem{
   width: 200px;
   height: 150px;
@@ -8,4 +14,32 @@
 #qtitle{
   white-space: nowrap;
   overflow: hidden;
+}
+#plcontrols{
+  width: 100%;
+  display: inline-block;
+}
+#chat{
+  background: lightblue;
+  height: 390px;
+  width: 600px;
+  float: left;
+  display: inline-block;
+  position: relative;
+}
+#player{
+  float:left;
+  display: inline-block;
+}
+#chatbox{
+  width: 100%;
+  position: absolute;
+  bottom: 0px;
+}
+#chat_users{
+  height:100%;
+  width: 30%;
+  right: 0px;
+  position: absolute;
+  background: orange;
 }

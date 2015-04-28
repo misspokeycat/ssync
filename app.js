@@ -40,7 +40,9 @@ var TIMER_UPDATE_INTERVAL = 1000;
 //internal timer update function
 setInterval(function(){
   currenttime += TIMER_UPDATE_INTERVAL/1000;
-  if (currenttime>currentdur){
+  //For whatever reason, Youtube removes the last second of their videos.
+  var GPCONST = 1;
+  if (currenttime>currentdur-GPCONST){
     playNextVidInPlaylist();
   }
   io.emit('video time', currenttime);
@@ -49,10 +51,10 @@ setInterval(function(){
 function playNextVidInPlaylist(){
   db.get("SELECT yt_id, duration, position  FROM playlist WHERE position>? ORDER BY position", currentpos, function(err, row){
     if (row != null){
-      playVid(row.yt_id, row.duration);
-      currentpos = row.position;
+      playVid(row.yt_id, row.duration, row.position);
       console.log('playing video with position ' + currentpos);
     } else{  //loops playlist back to start
+      //todo: add checks for empty playlists
       currentpos = -1;
       console.log('Reached EOP');
       playNextVidInPlaylist();  //woot recursion
@@ -60,10 +62,14 @@ function playNextVidInPlaylist(){
   });
 }
 
-function playVid(vid_id, vid_dur){
+function playVid(vid_id, vid_dur, pl_pos){
   currenttime = 0;
   currentdur = vid_dur;
   currentvid = vid_id;
+  //Videos can be played without playlist positions, so pl_pos not required param
+  if(pl_pos != undefined){
+    currentpos = pl_pos;
+  }
   io.emit('currenttime', currenttime);
   io.emit('video id', currentvid);
 }
@@ -88,8 +94,8 @@ io.on('connection', function(socket){
   //Socket handler for playing playlist items
   //Should also problaby update table with playing status
   socket.on('pl_play', function(id){
-    db.get('SELECT yt_id, duration FROM playlist WHERE id=?', id, function(err, row){
-      playVid(row.yt_id, row.duration);
+    db.get('SELECT yt_id, duration, position FROM playlist WHERE id=?', id, function(err, row){
+      playVid(row.yt_id, row.duration, row.position);
       currentplid = id;
     });
   });
@@ -98,6 +104,7 @@ io.on('connection', function(socket){
   socket.on('pl_remove', function(id){
     db.run('DELETE FROM playlist WHERE id=?', id);
     io.emit('pl_remove', id);
+    playNextVidInPlaylist();
   });
 
   //Socket handler for current video time
@@ -124,9 +131,8 @@ io.on('connection', function(socket){
             db.get("SELECT max(position) FROM playlist", function (err, row){
               //Increment max value by 1, add value
               var maxval = row[Object.keys(row)[0]];
+              //If we are adding the first object, maxval will be null
               if (maxval === null) maxval = 0;
-              //why does it have to return json objects with () in thier name?
-              console.log(row);
               if (maxval == undefined) maxval = 0;
               db.run("INSERT INTO playlist (title, yt_id, duration, yt_imgURL, playing, position) VALUES ($title, $yt_id, $duration, $yt_imgURL, 0, $position)", {
                 $title: content.items[0].snippet.title, 
